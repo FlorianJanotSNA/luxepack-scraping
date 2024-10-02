@@ -1,10 +1,12 @@
 const cheerio = require("cheerio");
 const axios =  require("axios");
 const fs = require("fs");
+const xlsx = require('xlsx');
 
 // constants for input/output
 const URL = "https://www.luxepackmonaco.com/visiter-luxe-pack-monaco/exposants-et-sponsors/";
 const JSONOutput = './luxepack.json';
+const XLSXOutput = './luxepack.xlsx';
 
 
 async function performScraping() {
@@ -95,7 +97,16 @@ async function performScraping() {
         "exposants" : dataExposants
     }
 
+    // writing the data in JSON file
     writeInJSONFile(objectData);
+
+    // creating new xlsx file
+    let file = xlsx.utils.book_new();
+
+    // auto write in xlsx file : different sheets for Exposants and Sponsors
+    writeInExcelFile(objectData, file, XLSXOutput);
+
+
 }
 
 
@@ -105,6 +116,42 @@ function writeInJSONFile(object) {
         console.log(`File created: ${JSONOutput}` );
     });
 }
+
+
+function writeInExcelFile(object, file, name) {
+
+    const transformData = (object) => {
+        const data = [];
+
+        object.forEach((obj) => {
+            const name = Object.keys(obj)[0];
+            const details = obj[name];
+
+            const row = { name, ...details }; 
+            data.push(row);
+        });
+        return data;
+    };
+
+
+    // data formatting : by rows
+    const transformedExposants = transformData(object.exposants);
+    const transformedSponsors  = transformData(object.sponsors);
+
+    // creating worksheet
+    const worksheet1 = xlsx.utils.json_to_sheet(transformedExposants);
+    // adding worksheet to file
+    xlsx.utils.book_append_sheet(file, worksheet1, "Exposants");
+
+    const worksheet2 = xlsx.utils.json_to_sheet(transformedSponsors);
+    xlsx.utils.book_append_sheet(file, worksheet2, "Sponsors")
+
+    xlsx.writeFile(file, name); // write file
+
+
+    console.log(`File created: ${XLSXOutput}`);
+}
+
 
 
 performScraping();
