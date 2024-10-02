@@ -44,11 +44,11 @@ async function performScraping() {
         const luxePackFormulation = ( data.attr("data-salon") === "luxe-pack-formulation" );
 
         const fullData = {
-            tag: tag,
             order: index+1,
+            tag: tag,
             location: location,
-            isNew: isNew,
             domain: domain,
+            isNew: isNew,
             luxe_pack_formulation: luxePackFormulation
         };
         if (logoLink !== undefined) fullData.img = logoLink;
@@ -78,9 +78,9 @@ async function performScraping() {
 
 
         const fullData = {
+            order: index+1,
             logoURL: img,
-            websiteURL: website,
-            order: index+1
+            websiteURL: website
         };
         if (infos !== "") fullData.description = infos;
 
