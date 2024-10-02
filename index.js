@@ -4,6 +4,7 @@ const fs = require("fs");
 
 const URL = "https://www.luxepackmonaco.com/visiter-luxe-pack-monaco/exposants-et-sponsors/";
 
+const JSONOutput = './luxepack.json';
 
 async function performScraping() {
 
@@ -22,9 +23,9 @@ async function performScraping() {
 
     const exposants = pageData(".exposant");
 
-
     exposants.each((index, exp) => {
         const data = pageData(exp);
+
         const name = data.find(".exposant__nom").text().trim();
 
         let tag = data.find(".exposant__tag").text().trim();
@@ -34,13 +35,15 @@ async function performScraping() {
         const isNew = (data.find(".exposant__nouveau").length >= 1 ? true : false);
         const logoLink = data.find(".exposant__logo").attr("data-src");
         const domain = data.attr("data-slug-secteur");
+        const luxePackFormulation = data.attr("data-salon") === "luxe-pack-formulation";
 
         const fullData = {
             tag: tag,
             order: index+1,
             location: location,
             isNew: isNew,
-            domain: domain
+            domain: domain,
+            luxe_pack_formulation: luxePackFormulation
         };
         if (logoLink !== undefined) fullData.img = logoLink;
 
@@ -52,12 +55,47 @@ async function performScraping() {
     });
 
 
-    writeInJSONFile(dataExposants);
+    const dataSponsors = [];
+
+    const sponsors = pageData(".trombi");
+
+    sponsors.each((index, sponsor) => {
+
+        const data = pageData(sponsor).find(".trombi__card");
+
+        const name = data.find(".trombi__if-no-titre").text().trim();
+        const img = data.find(".trombi__cont-img").find("div").attr("data-bg");
+        const website = pageData(sponsor).find(".trombi__details").find(".trombi__descriptif").find("p").find("a").attr("href");
+        const infos = data.find(".trombi__cont-infos").find(".trombi__wrapper-infos").text().trim();
+
+
+        const fullData = {
+            logoURL: img,
+            websiteURL: website,
+            order: index+1
+        };
+
+        if (infos !== "") fullData.description = infos;
+
+        const dataSponsor = {
+            [name] : fullData
+        };
+
+        dataSponsors.push(dataSponsor);
+    });
+
+
+    const objectData = {
+        "sponsors" : dataSponsors,
+        "exposants" : dataExposants
+    }
+
+    writeInJSONFile(objectData);
 }
 
 
 function writeInJSONFile(object) {
-    fs.writeFile("./object.json", JSON.stringify(object), (error) => {
+    fs.writeFile(`${JSONOutput}`, JSON.stringify(object), (error) => {
         if (error) {console.log(error); return;}
         console.log("File created: object.json");
     });
