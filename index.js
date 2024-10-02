@@ -6,6 +6,7 @@ const xlsx = require('xlsx');
 // constants for input/output
 const URL = "https://www.luxepackmonaco.com/visiter-luxe-pack-monaco/exposants-et-sponsors/";
 const JSONOutput = './luxepack.json';
+const XLSXOutput = './luxepack.xlsx';
 
 
 async function performScraping() {
@@ -96,14 +97,14 @@ async function performScraping() {
         "exposants" : dataExposants
     }
 
-
-    // writeInJSONFile(objectData);
+    // writing the data in JSON file
+    writeInJSONFile(objectData);
 
     // creating new xlsx file
     let file = xlsx.utils.book_new();
 
     // auto write in xlsx file : different sheets for Exposants and Sponsors
-    writeInExcelFile(objectData, file, "luxepack.xlsx");
+    writeInExcelFile(objectData, file, XLSXOutput);
 
 
 }
@@ -142,13 +143,13 @@ function writeInExcelFile(object, file, name) {
     // adding worksheet to file
     xlsx.utils.book_append_sheet(file, worksheet1, "Exposants");
 
-
     const worksheet2 = xlsx.utils.json_to_sheet(transformedSponsors);
     xlsx.utils.book_append_sheet(file, worksheet2, "Sponsors")
 
-
     xlsx.writeFile(file, name); // write file
 
+
+    console.log(`File created: ${XLSXOutput}`);
 }
 
 
