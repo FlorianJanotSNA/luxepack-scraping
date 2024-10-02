@@ -5,7 +5,6 @@ const fs = require("fs");
 const URL = "https://www.luxepackmonaco.com/visiter-luxe-pack-monaco/exposants-et-sponsors/";
 
 async function performScraping() {
-    console.log("hello world!");
     
     const response = await axios.request({
         method: "GET",
@@ -15,39 +14,52 @@ async function performScraping() {
         }
     })
 
-    const data = cheerio.load(response.data);
+    const pageData = cheerio.load(response.data);
 
     const dataExposants = [];
 
-    const exposants = data(".exposant");
+    const exposants = pageData(".exposant");
 
-    console.log(data(".exposant").find(".bonjourcommentallezvous").length);
+
+    console.log(JSON.stringify(obj))
 
     exposants.each((index, exp) => {
-        const emplacement = data(exp).find(".exposant__stand").text();
-        const nouveau = (data(exp).find(".exposant__nouveau").length >= 1 ? true : false);
-        const nom = data(exp).find(".exposant__nom").text().trim();
-        let tag = data(exp).find(".exposant__tag").text().trim();
-        tag = tag.replace(/\s\s+/g, ' ');
+        const data = pageData(exp);
+        const nom = data.find(".exposant__nom").text().trim();
+
+        let tag = data.find(".exposant__tag").text().trim();
+        tag = tag.replace(/\s\s+/g, ' '); // replace spaces, \n and \t with a single space
+
+        const emplacement = data.find(".exposant__stand").text();
+        const nouveau = (data.find(".exposant__nouveau").length >= 1 ? true : false);
+        const logoLink = data.find(".exposant__logo").attr("data-src");
+
+        const fullData = {
+            tag: tag,
+            ordre: index+1,
+            emplacement: emplacement,
+            estNoveau: nouveau
+        };
+        if (logoLink !== undefined) fullData.img = logoLink;
 
         const dataExposant = {
-            [nom] : {
-                emplacement: emplacement,
-                estNoveau: nouveau,
-                tag: tag
-            }};
+            [nom] : fullData
+        };
+
         dataExposants.push(dataExposant);
     });
 
-    console.log("nouveaux : "+data(".exposant").find(".exposant__nouveau").length);
-    console.log("exposants: "+data(".exposant").find(".exposant__stand").length);
-    console.log("noms     : "+data(".exposant").find(".exposant__nom").length);
 
-    console.log("exposants : " + JSON.stringify(dataExposants[1]));
-
-
+    writeInJSONFile(dataExposants);
 }
 
+
+function writeInJSONFile(object) {
+    fs.writeFile("./object.json", JSON.stringify(object), (error) => {
+        if (error) {console.log(error); return;}
+        console.log("File created: object.json");
+    });
+}
 
 
 performScraping();
