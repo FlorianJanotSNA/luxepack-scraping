@@ -1,5 +1,6 @@
 const cheerio = require("cheerio");
 const axios =  require("axios");
+const fs = require("fs");
 
 const URL = "https://www.luxepackmonaco.com/visiter-luxe-pack-monaco/exposants-et-sponsors/";
 
@@ -16,15 +17,34 @@ async function performScraping() {
 
     const data = cheerio.load(response.data);
 
+    const dataExposants = [];
+
     const exposants = data(".exposant");
 
-    console.log(data("bonjouratouscommentallezvous"))
+    console.log(data(".exposant").find(".bonjourcommentallezvous").length);
 
     exposants.each((index, exp) => {
-        const emplacement = data(exp).find(".exposant__stand");
-        // console.log(emplacement.text());
+        const emplacement = data(exp).find(".exposant__stand").text();
+        const nouveau = (data(exp).find(".exposant__nouveau").length >= 1 ? true : false);
+        const nom = data(exp).find(".exposant__nom").text().trim();
+        let tag = data(exp).find(".exposant__tag").text().trim();
+        tag = tag.replace(/\s\s+/g, ' ');
+
+        const dataExposant = {
+            [nom] : {
+                emplacement: emplacement,
+                estNoveau: nouveau,
+                tag: tag
+            }};
+        dataExposants.push(dataExposant);
     });
-    
+
+    console.log("nouveaux : "+data(".exposant").find(".exposant__nouveau").length);
+    console.log("exposants: "+data(".exposant").find(".exposant__stand").length);
+    console.log("noms     : "+data(".exposant").find(".exposant__nom").length);
+
+    console.log("exposants : " + JSON.stringify(dataExposants[1]));
+
 
 }
 
