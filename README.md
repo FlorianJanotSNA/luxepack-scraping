@@ -66,8 +66,6 @@ After parsing the page and extracting all the necessary data, an object is creat
 Finally, the object is written to a JSON file using **FS**.
 
 
-Here’s a rephrased version of your description:
-
 ## Xlsx File
 
 The Excel file is generated using the `xlsx` module. The `transformData` method is employed to format the objects, ensuring that the names of sponsors and exposants appear on the same line as the other information.
