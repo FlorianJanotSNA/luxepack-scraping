@@ -4,8 +4,9 @@ const fs = require("fs");
 
 const URL = "https://www.luxepackmonaco.com/visiter-luxe-pack-monaco/exposants-et-sponsors/";
 
+
 async function performScraping() {
-    
+
     const response = await axios.request({
         method: "GET",
         url: `${URL}`,
@@ -14,6 +15,7 @@ async function performScraping() {
         }
     })
 
+
     const pageData = cheerio.load(response.data);
 
     const dataExposants = [];
@@ -21,29 +23,29 @@ async function performScraping() {
     const exposants = pageData(".exposant");
 
 
-    console.log(JSON.stringify(obj))
-
     exposants.each((index, exp) => {
         const data = pageData(exp);
-        const nom = data.find(".exposant__nom").text().trim();
+        const name = data.find(".exposant__nom").text().trim();
 
         let tag = data.find(".exposant__tag").text().trim();
         tag = tag.replace(/\s\s+/g, ' '); // replace spaces, \n and \t with a single space
 
-        const emplacement = data.find(".exposant__stand").text();
-        const nouveau = (data.find(".exposant__nouveau").length >= 1 ? true : false);
+        const location = data.find(".exposant__stand").text();
+        const isNew = (data.find(".exposant__nouveau").length >= 1 ? true : false);
         const logoLink = data.find(".exposant__logo").attr("data-src");
+        const domain = data.attr("data-slug-secteur");
 
         const fullData = {
             tag: tag,
-            ordre: index+1,
-            emplacement: emplacement,
-            estNoveau: nouveau
+            order: index+1,
+            location: location,
+            isNew: isNew,
+            domain: domain
         };
         if (logoLink !== undefined) fullData.img = logoLink;
 
         const dataExposant = {
-            [nom] : fullData
+            [name] : fullData
         };
 
         dataExposants.push(dataExposant);
